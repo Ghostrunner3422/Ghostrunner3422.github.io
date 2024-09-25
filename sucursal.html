@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <!--
+        /**********************************************************/
+        /* Axolotl Technologies                                   */
+        /* 11/08/2024                                             */
+        /* Nombre del autor: [Tu Nombre Aquí]                     */
+        /* Página de gestión de sucursales                        */
+        /**********************************************************/
+        -->
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gestión de Sucursales</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+        <link rel="stylesheet" href="css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="css/usuarios.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    </head>
+    <body>
+        <!--
+        /**********************************************************/
+        /* En esta sección se añaden los elementos de la cabecera */
+        /* de la página, como el botón de inicio y el campo de    */
+        /* búsqueda.                                              */
+        /**********************************************************/
+        -->
+        <div class="pt-3 container-fluid row">
+            <div class="col-xl-3 col-lg-2 col-md-2 col-sm-1">
+                <button onclick="location.href = 'principal.html'" class="icon-button pt-2 mt-1 px-4">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
+                </button>
+            </div>
+            <div class="col-xl-6 col-lg-6 col-md-5 col-sm-5">
+                <h1>Gestión de Sucursales</h1>
+            </div>
+            <div class="search-container col-xl-3 col-lg-5 col-md-5 col-sm-6 px-5">
+                <input type="text" id="searchInput" placeholder="Buscar en la tabla" onkeyup="searchTable()">
+                <img src="https://img.icons8.com/ios-filled/50/000000/search.png" alt="Buscar">
+            </div>
+        </div>
+        <br>
+        <!--
+        /**********************************************************/
+        /* En esta sección se añade la tabla de sucursales con    */
+        /* cabecera y un botón para añadir nuevas entradas.       */
+        /**********************************************************/
+        -->
+        <div class="col-sm-12 contenedor-blanco">
+            <div class="table-responsive-sm">
+                <table id="sucursalTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Foto</th>
+                            <th>Nombre</th>
+                            <th>Dirección</th>
+                            <th>Latitud Longitud</th>
+                            <th>URL</th>
+                            <th>Horario</th>
+                            <th>Estatus</th>
+                            <th>
+                                <button onclick="openSucursalForm()" class="icon-button2">
+                                    <img src="https://img.icons8.com/?size=100&id=BqsXFUlIH58v&format=png&color=ffffff" alt="Añadir">
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Las filas se agregarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/sucursales.js"></script>
+    </body>
+</html>
