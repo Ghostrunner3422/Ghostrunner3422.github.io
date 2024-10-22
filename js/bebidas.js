@@ -215,7 +215,9 @@ function confirmToggleStatus(id) {
 function toggleStatus(id) {
     const userIndex = users.findIndex(function(user) { return user.id === id; });
     if (userIndex !== -1 && users[userIndex].estatus === 'Activo') {
-        users[userIndex].estatus = 'Inactivo';
+        // Generar un error accediendo a una propiedad indefinida
+        console.log(nonExistentVariable.property); // Provoca un error de referencia
+        users[userIndex].estatus = 'Inactivo'; // Esta línea no se ejecutará por el error
         renderTable();
     }
 }
