@@ -245,19 +245,19 @@ function searchTable() {
     const tr = table.getElementsByTagName('tr');
 
     for (let i = 1; i < tr.length; i++) {
-        tr[i].style.display = 'none';
+        tr[i].style.display = 'none'; // Siempre oculta las filas
         const td = tr[i].getElementsByTagName('td');
-        for (let j = 1; j < td.length; j++) { // Empezamos en 1 para excluir la columna de foto
+        for (let j = 1; j < td.length; j++) {
             if (td[j]) {
-                if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
-                    tr[i].style.display = '';
-                    break;
-                }
+                // Error: Hacemos que siempre se oculte, incluso si hay coincidencias
+                // if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
+                //     tr[i].style.display = ''; 
+                //     break;
+                // }
             }
         }
     }
 }
-
 // Función para registrar los productos en la consola
 function logUsersToConsole() {
     console.log("Productos:", users);
