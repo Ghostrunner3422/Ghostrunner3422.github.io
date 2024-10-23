@@ -75,13 +75,20 @@ function openUserForm(user = {}) {
             <label for="descripcion">Descripción:</label>
             <textarea id="descripcion" class="swal2-textarea">${user.descripcion || ''}</textarea>
             <label for="precio">Precio:</label>
-            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}><br> <!-- Error de sintaxis: falta de cierre de comillas -->
+            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}">
             <label for="categoria">Categoría:</label>
             <select id="categoria" class="swal2-select">
                 <option value="Refrescos" ${user.categoria === 'Refrescos' ? 'selected' : ''}>Refrescos</option>
                 <option value="Aguas" ${user.categoria === 'Aguas' ? 'selected' : ''}>Aguas</option>
                 <option value="Jugos" ${user.categoria === 'Jugos' ? 'selected' : ''}>Jugos</option>
+                <option value="Cafés" ${user.categoria === 'Cafés' ? 'selected' : ''}>Cafés</option>
+                <option value="Bebidas alcohólicas" ${user.categoria === 'Bebidas alcohólicas' ? 'selected' : ''}>Bebidas alcohólicas</option>
             </select>
+            ${isEditMode ? `
+                <label for="estatus">Estatus:</label>
+                <select id="estatus" class="swal2-select">
+                    <option value="Activo" ${user.estatus === 'Activo' ? 'selected' : ''}>Activo</option>
+            ` : ''} <!-- Error de sintaxis: falta de cierre de la etiqueta select -->
         `,
         focusConfirm: false,
         confirmButtonText: 'Guardar',
