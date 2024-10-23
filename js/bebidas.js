@@ -70,15 +70,12 @@ function openUserForm(user = {}) {
         title: user.id ? 'Editar Producto' : 'Agregar Producto',
         html: `
             <input type="hidden" id="userId" value="${user.id || ''}">
-            <label for="foto">Foto:</label>
-            <input type="file" id="foto" class="swal2-file" accept="image/*">
-            ${user.foto ? `<img src="${user.foto}" id="previewFoto" alt="Foto de ${user.nombre}" width="200"><br>` : ''} <!-- Aumenta el tamaño a 200px -->
             <label for="nombre">Nombre:</label>
             <input type="text" id="nombre" class="swal2-input" value="${user.nombre || ''}">
             <label for="descripcion">Descripción:</label>
             <textarea id="descripcion" class="swal2-textarea">${user.descripcion || ''}</textarea>
             <label for="precio">Precio:</label>
-            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}"><br>
+            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}">
             <label for="categoria">Categoría:</label>
             <select id="categoria" class="swal2-select">
                 <option value="Refrescos" ${user.categoria === 'Refrescos' ? 'selected' : ''}>Refrescos</option>
@@ -89,94 +86,46 @@ function openUserForm(user = {}) {
                 <option value="Tés" ${user.categoria === 'Tés' ? 'selected' : ''}>Tés</option>
                 <option value="Batidos" ${user.categoria === 'Batidos' ? 'selected' : ''}>Batidos</option>
             </select>
-            ${isEditMode ? `
-                <label for="estatus">Estatus:</label>
-                <select id="estatus" class="swal2-select">
-                    <option value="Activo" ${user.estatus === 'Activo' ? 'selected' : ''}>Activo</option>
-                </select>
-            ` : ''}
         `,
         focusConfirm: false,
-        confirmButtonText: 'Guardar',
+        confirmButtonText: 'Guardar cambios',
         preConfirm: () => {
             return new Promise((resolve, reject) => {
-                const fotoInput = document.getElementById('foto');
                 const nombreInput = document.getElementById('nombre');
                 const descripcionInput = document.getElementById('descripcion');
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
-                // Validación de campos obligatorios
-                if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value || (isEditMode && !user.foto && !fotoInput.files[0])) {
-                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                // Introducir un error en la validación del nombre
+                if (!nombreInput.value || nombreInput.value.length < 3) {
+                    Swal.showValidationMessage('El nombre debe tener al menos 3 caracteres');
                     return false;
                 }
 
-                // Validación del precio
+                // Validación del precio (puedes dejarlo correcto para evitar que falle)
                 if (isNaN(precioInput.value) || precioInput.value <= 0) {
                     Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
                     return false;
                 }
 
-                // Manejo de la imagen
-                if (fotoInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        resolve({
-                            id: document.getElementById('userId').value,
-                            foto: e.target.result,
-                            nombre: document.getElementById('nombre').value,
-                            descripcion: document.getElementById('descripcion').value,
-                            precio: document.getElementById('precio').value,
-                            categoria: document.getElementById('categoria').value,
-                            estatus: isEditMode ? 'Activo' : 'Activo',
-                        });
-                    };
-                    reader.readAsDataURL(fotoInput.files[0]);
-                } else {
-                    resolve({
-                        id: document.getElementById('userId').value,
-                        foto: user.foto,
-                        nombre: document.getElementById('nombre').value,
-                        descripcion: document.getElementById('descripcion').value,
-                        precio: document.getElementById('precio').value,
-                        categoria: document.getElementById('categoria').value,
-                        estatus: isEditMode ? 'Activo' : 'Activo',
-                    });
-                }
+                resolve({
+                    id: document.getElementById('userId').value,
+                    nombre: nombreInput.value,
+                    descripcion: descripcionInput.value,
+                    precio: precioInput.value,
+                    categoria: categoriaInput.value,
+                });
             });
         }
     }).then(function(result) {
         if (result.isConfirmed) {
-            const { id, foto, nombre, descripcion, precio, categoria, estatus } = result.value;
-            if (id) {
-                const userIndex = users.findIndex(function(user) { return user.id === id; });
-                users[userIndex] = { id, foto, nombre, descripcion, precio, categoria, estatus };
-            } else {
-                const newId = String(users.length ? Math.max(...users.map(function(user) { return parseInt(user.id); })) + 1 : 1).padStart(4, '0');
-                users.push({ id: newId, foto, nombre, descripcion, precio, categoria, estatus });
+            const { id, nombre, descripcion, precio, categoria } = result.value;
+            const userIndex = users.findIndex(function(user) { return user.id === id; });
+            if (userIndex !== -1) {
+                users[userIndex] = { id, nombre, descripcion, precio, categoria, estatus: 'Activo' };
             }
             renderTable();
-        }
-    });
-
-    const fotoInput = document.getElementById('foto');
-    fotoInput.addEventListener('change', function() {
-        const previewFoto = document.getElementById('previewFoto');
-        if (fotoInput.files && fotoInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (previewFoto) {
-                    previewFoto.src = e.target.result;
-                } else {
-                    const img = document.createElement('img');
-                    img.id = 'previewFoto';
-                    img.src = e.target.result;
-                    img.width = 200; // Aumenta el tamaño a 200px
-                    fotoInput.insertAdjacentElement('afterend', img);
-                }
-            };
-            reader.readAsDataURL(fotoInput.files[0]);
+            Swal.fire('Guardado!', 'Los cambios se han guardado correctamente.', 'success');
         }
     });
 }
