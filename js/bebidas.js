@@ -90,21 +90,15 @@ function openUserForm(user = {}) {
         focusConfirm: false,
         confirmButtonText: 'Guardar cambios',
         preConfirm: () => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const nombreInput = document.getElementById('nombre');
                 const descripcionInput = document.getElementById('descripcion');
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
-                // Introducir un error en la validación del nombre
-                if (!nombreInput.value || nombreInput.value.length < 3) {
-                    Swal.showValidationMessage('El nombre debe tener al menos 3 caracteres');
-                    return false;
-                }
-
-                // Validación del precio (puedes dejarlo correcto para evitar que falle)
-                if (isNaN(precioInput.value) || precioInput.value <= 0) {
-                    Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
+                // Validaciones de campos (puedes dejarlas correctas)
+                if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
                     return false;
                 }
 
@@ -121,11 +115,16 @@ function openUserForm(user = {}) {
         if (result.isConfirmed) {
             const { id, nombre, descripcion, precio, categoria } = result.value;
             const userIndex = users.findIndex(function(user) { return user.id === id; });
+            
+            // Aquí inyectamos el error: no actualizamos el objeto, pero mostramos la alerta
             if (userIndex !== -1) {
-                users[userIndex] = { id, nombre, descripcion, precio, categoria, estatus: 'Activo' };
+                // Simular un error al no actualizar el objeto
+                // users[userIndex] = { id, nombre, descripcion, precio, categoria, estatus: 'Activo' };
             }
-            renderTable();
+
+            // Alerta falsa de éxito, aunque no se haya actualizado la lista
             Swal.fire('Guardado!', 'Los cambios se han guardado correctamente.', 'success');
+            renderTable();  // Esta llamada todavía se ejecuta, pero no hará cambios
         }
     });
 }
