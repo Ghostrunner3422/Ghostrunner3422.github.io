@@ -89,7 +89,7 @@ function openUserForm(user = {}) {
             return new Promise((resolve, reject) => {
                 const fotoInput = document.getElementById('foto');
                 const nombreInput = document.getElementById('nombre');
-                const descripcionInput = document.getElementById('descripcion');
+                const descripcionInput = document.getElementById('descripción');
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
