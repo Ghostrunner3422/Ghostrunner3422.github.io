@@ -45,7 +45,7 @@ function renderTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${user.id}</td>
-            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td>
+            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td> <!-- Aumenta el tamaño a 200px -->
             <td>${user.nombre}</td>
             <td>${user.descripcion}</td>
             <td>$${user.precio}</td>
@@ -58,6 +58,9 @@ function renderTable() {
         `;
         tableBody.appendChild(row);
     });
+
+    // Llamar a la función para mostrar los objetos en la consola
+    logUsersToConsole();
 }
 
 // Función para abrir el formulario de usuarios
@@ -69,7 +72,7 @@ function openUserForm(user = {}) {
             <input type="hidden" id="userId" value="${user.id || ''}">
             <label for="foto">Foto:</label>
             <input type="file" id="foto" class="swal2-file" accept="image/*">
-            ${user.foto ? `<img src="${user.foto}" id="previewFoto" alt="Foto de ${user.nombre}" width="200"><br>` : ''}
+            ${user.foto ? `<img src="${user.foto}" id="previewFoto" alt="Foto de ${user.nombre}" width="200"><br>` : ''} <!-- Aumenta el tamaño a 200px -->
             <label for="nombre">Nombre:</label>
             <input type="text" id="nombre" class="swal2-input" value="${user.nombre || ''}">
             <label for="descripcion">Descripción:</label>
@@ -86,41 +89,155 @@ function openUserForm(user = {}) {
                 <option value="Tés" ${user.categoria === 'Tés' ? 'selected' : ''}>Tés</option>
                 <option value="Batidos" ${user.categoria === 'Batidos' ? 'selected' : ''}>Batidos</option>
             </select>
+            ${isEditMode ? `
+                <label for="estatus">Estatus:</label>
+                <select id="estatus" class="swal2-select">
+                    <option value="Activo" ${user.estatus === 'Activo' ? 'selected' : ''}>Activo</option>
+                </select>
+            ` : ''}
         `,
         focusConfirm: false,
         confirmButtonText: 'Guardar',
         preConfirm: () => {
-            const nombreInput = document.getElementById('nombre');
-            const descripcionInput = document.getElementById('descripcion');
-            const precioInput = document.getElementById('precio');
-            const categoriaInput = document.getElementById('categoria');
+            return new Promise((resolve, reject) => {
+                const fotoInput = document.getElementById('foto');
+                const nombreInput = document.getElementById('nombre');
+                const descripcionInput = document.getElementById('descripcion');
+                const precioInput = document.getElementById('precio');
+                const categoriaInput = document.getElementById('categoria');
 
-            if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value) {
-                Swal.showValidationMessage('Todos los campos son obligatorios');
-                return false;
-            }
+                // Validación de campos obligatorios
+                if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value || (isEditMode && !user.foto && !fotoInput.files[0])) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                    return false;
+                }
 
-            return {
-                id: document.getElementById('userId').value,
-                foto: user.foto,
-                nombre: nombreInput.value,
-                descripcion: descripcionInput.value,
-                precio: precioInput.value,
-                categoria: categoriaInput.value,
-                estatus: 'Activo',
-            };
+                // Validación del precio
+                if (isNaN(precioInput.value) || precioInput.value <= 0) {
+                    Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
+                    return false;
+                }
+
+                // Manejo de la imagen
+                if (fotoInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve({
+                            id: document.getElementById('userId').value,
+                            foto: e.target.result,
+                            nombre: document.getElementById('nombre').value,
+                            descripcion: document.getElementById('descripcion').value,
+                            precio: document.getElementById('precio').value,
+                            categoria: document.getElementById('categoria').value,
+                            estatus: isEditMode ? 'Activo' : 'Activo',
+                        });
+                    };
+                    reader.readAsDataURL(fotoInput.files[0]);
+                } else {
+                    resolve({
+                        id: document.getElementById('userId').value,
+                        foto: user.foto,
+                        nombre: document.getElementById('nombre').value,
+                        descripcion: document.getElementById('descripcion').value,
+                        precio: document.getElementById('precio').value,
+                        categoria: document.getElementById('categoria').value,
+                        estatus: isEditMode ? 'Activo' : 'Activo',
+                    });
+                }
+            });
         }
-    }).then(result => {
+    }).then(function(result) {
         if (result.isConfirmed) {
             const { id, foto, nombre, descripcion, precio, categoria, estatus } = result.value;
             if (id) {
-                const userIndex = users.findIndex(user => user.id === id);
+                const userIndex = users.findIndex(function(user) { return user.id === id; });
                 users[userIndex] = { id, foto, nombre, descripcion, precio, categoria, estatus };
             } else {
-                const newId = String(users.length ? Math.max(...users.map(user => parseInt(user.id))) + 1 : 1).padStart(4, '0');
+                const newId = String(users.length ? Math.max(...users.map(function(user) { return parseInt(user.id); })) + 1 : 1).padStart(4, '0');
                 users.push({ id: newId, foto, nombre, descripcion, precio, categoria, estatus });
             }
             renderTable();
+        }
+    });
+
+    const fotoInput = document.getElementById('foto');
+    fotoInput.addEventListener('change', function() {
+        const previewFoto = document.getElementById('previewFoto');
+        if (fotoInput.files && fotoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (previewFoto) {
+                    previewFoto.src = e.target.result;
+                } else {
+                    const img = document.createElement('img');
+                    img.id = 'previewFoto';
+                    img.src = e.target.result;
+                    img.width = 200; // Aumenta el tamaño a 200px
+                    fotoInput.insertAdjacentElement('afterend', img);
+                }
+            };
+            reader.readAsDataURL(fotoInput.files[0]);
+        }
+    });
+}
+
+// Función para editar un producto
+function editUser(id) {
+    const user = users.find(function(user) { return user.id === id; });
+    openUserForm(user);
+}
+
+// Función para confirmar el cambio de estatus al eliminar
+function confirmToggleStatus(id) {
+    const user = users.find(function(user) { return user.id === id; });
+
+    Swal.fire({
+        title: user.estatus === 'Activo' ? '¿Estás seguro de inactivar esta bebida?' : '¿Estás seguro de eliminar esta bebida?',
+        text: user.estatus === 'Activo' ? 'Esta acción cambiará el estatus del producto a inactivo.' : 'Esta acción eliminará el producto.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: user.estatus === 'Activo' ? 'Sí, inactivar' : 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            if (user.estatus === 'Activo') {
+                toggleStatus(id);
+            } else {
+                deleteUser(id);
+            }
+        }
+    });
+}
+
+// Función para cambiar el estatus de un producto a Inactivo
+function toggleStatus(id) {
+    const userIndex = users.findIndex(function(user) { return user.id === id; });
+    if (userIndex !== -1 && users[userIndex].estatus === 'Activo') {
+        users[userIndex].estatus = 'Inactivo';
+        renderTable();
+    }
+}
+
+// Función para eliminar un producto
+function deleteUser(id) {
+    Swal.fire({
+        title: 'Eliminar Producto',
+        text: '¿Estás seguro de que deseas eliminar este producto?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            const userIndex = users.findIndex(function(user) { return user.id === id; });
+            if (userIndex !== -1) {
+                users.splice(userIndex, 1);
+                renderTable();
+            }
         }
     });
 }
@@ -135,11 +252,21 @@ function searchTable() {
     for (let i = 1; i < tr.length; i++) {
         tr[i].style.display = 'none';
         const td = tr[i].getElementsByTagName('td');
-        for (let j = 1; j < td.length; j++) {
-            if (td[j] && td[j].innerHTML.indexOf(filter) > -1) { // Error: No convierte a minúsculas
-                tr[i].style.display = '';
-                break;
+        for (let j = 1; j < td.length; j++) { // Empezamos en 1 para excluir la columna de foto
+            if (td[j]) {
+                if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = '';
+                    break;
+                }
             }
         }
     }
 }
+
+// Función para registrar los productos en la consola
+function logUsersToConsole() {
+    console.log("Productos:", users);
+}
+
+// Renderizar la tabla al cargar la página
+renderTable();
