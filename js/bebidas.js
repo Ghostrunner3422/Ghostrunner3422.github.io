@@ -45,7 +45,7 @@ function renderTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${user.id}</td>
-            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td>
+            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td> <!-- Aumenta el tamaño a 200px -->
             <td>${user.nombre}</td>
             <td>${user.descripcion}</td>
             <td>$${user.precio}</td>
@@ -59,6 +59,7 @@ function renderTable() {
         tableBody.appendChild(row);
     });
 
+    // Llamar a la función para mostrar los objetos en la consola
     logUsersToConsole();
 }
 
@@ -69,12 +70,15 @@ function openUserForm(user = {}) {
         title: user.id ? 'Editar Producto' : 'Agregar Producto',
         html: `
             <input type="hidden" id="userId" value="${user.id || ''}">
+            <label for="foto">Foto:</label>
+            <input type="file" id="foto" class="swal2-file" accept="image/*">
+            ${user.foto ? `<img src="${user.foto}" id="previewFoto" alt="Foto de ${user.nombre}" width="200"><br>` : ''} <!-- Aumenta el tamaño a 200px -->
             <label for="nombre">Nombre:</label>
             <input type="text" id="nombre" class="swal2-input" value="${user.nombre || ''}">
             <label for="descripcion">Descripción:</label>
             <textarea id="descripcion" class="swal2-textarea">${user.descripcion || ''}</textarea>
             <label for="precio">Precio:</label>
-            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}">
+            <input type="number" id="precio" class="swal2-input" value="${user.precio || ''}"><br>
             <label for="categoria">Categoría:</label>
             <select id="categoria" class="swal2-select">
                 <option value="Refrescos" ${user.categoria === 'Refrescos' ? 'selected' : ''}>Refrescos</option>
@@ -82,12 +86,15 @@ function openUserForm(user = {}) {
                 <option value="Jugos" ${user.categoria === 'Jugos' ? 'selected' : ''}>Jugos</option>
                 <option value="Cafés" ${user.categoria === 'Cafés' ? 'selected' : ''}>Cafés</option>
                 <option value="Bebidas alcohólicas" ${user.categoria === 'Bebidas alcohólicas' ? 'selected' : ''}>Bebidas alcohólicas</option>
+                <option value="Tés" ${user.categoria === 'Tés' ? 'selected' : ''}>Tés</option>
+                <option value="Batidos" ${user.categoria === 'Batidos' ? 'selected' : ''}>Batidos</option>
             </select>
             ${isEditMode ? `
                 <label for="estatus">Estatus:</label>
                 <select id="estatus" class="swal2-select">
                     <option value="Activo" ${user.estatus === 'Activo' ? 'selected' : ''}>Activo</option>
-                </select>` : ''}
+                </select>
+            ` : ''}
         `,
         focusConfirm: false,
         confirmButtonText: 'Guardar',
@@ -99,26 +106,29 @@ function openUserForm(user = {}) {
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
+                // Validación de campos obligatorios
                 if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value || (isEditMode && !user.foto && !fotoInput.files[0])) {
                     Swal.showValidationMessage('Todos los campos son obligatorios');
                     return false;
                 }
 
+                // Validación del precio
                 if (isNaN(precioInput.value) || precioInput.value <= 0) {
                     Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
                     return false;
                 }
 
+                // Manejo de la imagen
                 if (fotoInput.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         resolve({
                             id: document.getElementById('userId').value,
                             foto: e.target.result,
-                            nombre: nombreInput.value,
-                            descripcion: descripcionInput.value,
-                            precio: precioInput.value,
-                            categoria: categoriaInput.value,
+                            nombre: document.getElementById('nombre').value,
+                            descripcion: document.getElementById('descripcion').value,
+                            precio: document.getElementById('precio').value,
+                            categoria: document.getElementById('categoria').value,
                             estatus: isEditMode ? 'Activo' : 'Activo',
                         });
                     };
@@ -127,10 +137,10 @@ function openUserForm(user = {}) {
                     resolve({
                         id: document.getElementById('userId').value,
                         foto: user.foto,
-                        nombre: nombreInput.value,
-                        descripcion: descripcionInput.value,
-                        precio: precioInput.value,
-                        categoria: categoriaInput.value,
+                        nombre: document.getElementById('nombre').value,
+                        descripcion: document.getElementById('descripcion').value,
+                        precio: document.getElementById('precio').value,
+                        categoria: document.getElementById('categoria').value,
                         estatus: isEditMode ? 'Activo' : 'Activo',
                     });
                 }
@@ -162,7 +172,7 @@ function openUserForm(user = {}) {
                     const img = document.createElement('img');
                     img.id = 'previewFoto';
                     img.src = e.target.result;
-                    img.width = 200;
+                    img.width = 200; // Aumenta el tamaño a 200px
                     fotoInput.insertAdjacentElement('afterend', img);
                 }
             };
@@ -204,23 +214,59 @@ function confirmToggleStatus(id) {
 // Función para cambiar el estatus de un producto a Inactivo
 function toggleStatus(id) {
     const userIndex = users.findIndex(function(user) { return user.id === id; });
-    if (userIndex !== -1) {
+    if (userIndex !== -1 && users[userIndex].estatus === 'Activo') {
         users[userIndex].estatus = 'Inactivo';
         renderTable();
     }
 }
 
-// Función para realizar una búsqueda en la tabla
-function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const rows = document.querySelectorAll('#userTable tbody tr');
-
-    rows.forEach(function(row) {
-        const name = row.cells[2].textContent.toLowerCase();
-        row.style.display = name.includes(filter) ? '' : 'none';
+// Función para eliminar un producto
+function deleteUser(id) {
+    Swal.fire({
+        title: 'Eliminar Producto',
+        text: '¿Estás seguro de que deseas eliminar este producto?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            const userIndex = users.findIndex(function(user) { return user.id === id; });
+            if (userIndex !== -1) {
+                users.splice(userIndex, 1);
+                renderTable();
+            }
+        }
     });
 }
 
-// Renderizar tabla inicial
+// Función para buscar en la tabla
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('userTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        tr[i].style.display = 'none';
+        const td = tr[i].getElementsByTagName('td');
+        for (let j = 1; j < td.length; j++) { // Empezamos en 1 para excluir la columna de foto
+            if (td[j]) {
+                if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = '';
+                    break;
+                }
+            }
+        }
+    }
+}
+
+// Función para registrar los productos en la consola
+function logUsersToConsole() {
+    console.log("Productos:", users);
+}
+
+// Renderizar la tabla al cargar la página
 renderTable();
