@@ -59,7 +59,6 @@ function renderTable() {
         tableBody.appendChild(row);
     });
 
-    // Llamar a la función para mostrar los objetos en la consola
     logUsersToConsole();
 }
 
@@ -88,7 +87,7 @@ function openUserForm(user = {}) {
                 <label for="estatus">Estatus:</label>
                 <select id="estatus" class="swal2-select">
                     <option value="Activo" ${user.estatus === 'Activo' ? 'selected' : ''}>Activo</option>
-            ` : ''} <!-- Error de sintaxis: falta de cierre de la etiqueta select -->
+                </select>` : ''}
         `,
         focusConfirm: false,
         confirmButtonText: 'Guardar',
@@ -96,33 +95,30 @@ function openUserForm(user = {}) {
             return new Promise((resolve, reject) => {
                 const fotoInput = document.getElementById('foto');
                 const nombreInput = document.getElementById('nombre');
-                const descripcionInput = document.getElementById('descripción');
+                const descripcionInput = document.getElementById('descripcion');
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
-                // Validación de campos obligatorios
                 if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value || (isEditMode && !user.foto && !fotoInput.files[0])) {
                     Swal.showValidationMessage('Todos los campos son obligatorios');
                     return false;
                 }
 
-                // Validación del precio
                 if (isNaN(precioInput.value) || precioInput.value <= 0) {
                     Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
                     return false;
                 }
 
-                // Manejo de la imagen
                 if (fotoInput.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         resolve({
                             id: document.getElementById('userId').value,
                             foto: e.target.result,
-                            nombre: document.getElementById('nombre').value,
-                            descripcion: document.getElementById('descripcion').value,
-                            precio: document.getElementById('precio').value,
-                            categoria: document.getElementById('categoria').value,
+                            nombre: nombreInput.value,
+                            descripcion: descripcionInput.value,
+                            precio: precioInput.value,
+                            categoria: categoriaInput.value,
                             estatus: isEditMode ? 'Activo' : 'Activo',
                         });
                     };
@@ -131,10 +127,10 @@ function openUserForm(user = {}) {
                     resolve({
                         id: document.getElementById('userId').value,
                         foto: user.foto,
-                        nombre: document.getElementById('nombre').value,
-                        descripcion: document.getElementById('descripcion').value,
-                        precio: document.getElementById('precio').value,
-                        categoria: document.getElementById('categoria').value,
+                        nombre: nombreInput.value,
+                        descripcion: descripcionInput.value,
+                        precio: precioInput.value,
+                        categoria: categoriaInput.value,
                         estatus: isEditMode ? 'Activo' : 'Activo',
                     });
                 }
@@ -208,10 +204,9 @@ function confirmToggleStatus(id) {
 // Función para cambiar el estatus de un producto a Inactivo
 function toggleStatus(id) {
     const userIndex = users.findIndex(function(user) { return user.id === id; });
-    if (userIndex !== -1 && users[userIndex].estatus === 'Activo') {
-        // Provocar un fallo accediendo a un índice incorrecto en el arreglo
-        users[userIndex].estatus = users[9999].estatus; // Índice inexistente en el array
-        renderTable(); // Esto no se ejecutará correctamente ya que habrá un error de índice
+    if (userIndex !== -1) {
+        users[userIndex].estatus = 'Inactivo';
+        renderTable();
     }
 }
 
@@ -222,25 +217,10 @@ function searchTable() {
     const rows = document.querySelectorAll('#userTable tbody tr');
 
     rows.forEach(function(row) {
-        const cells = row.getElementsByTagName('td');
-        let found = false;
-        for (let i = 0; i < cells.length; i++) {
-            if (cells[i].textContent.toLowerCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
-        }
-        // Comentando la línea que muestra la fila coincidente
-        // row.style.display = found ? '' : 'none';
+        const name = row.cells[2].textContent.toLowerCase();
+        row.style.display = name.includes(filter) ? '' : 'none';
     });
 }
 
-// Función para eliminar un producto
-function deleteUser(id) {
-    users = users.filter(function(user) { return user.id !== id; });
-    renderTable();
-    console.log("Producto eliminado:", id);
-}
-
-// Inicializar la tabla en la carga
-document.addEventListener('DOMContentLoaded', renderTable);
+// Renderizar tabla inicial
+renderTable();
