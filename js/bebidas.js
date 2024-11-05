@@ -45,7 +45,7 @@ function renderTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${user.id}</td>
-            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td> <!-- Aumenta el tamaño a 200px -->
+            <td><img src="${user.foto}" alt="Foto de ${user.nombre}" width="200"></td>
             <td>${user.nombre}</td>
             <td>${user.descripcion}</td>
             <td>$${user.precio}</td>
@@ -166,7 +166,7 @@ function openUserForm(user = {}) {
                     const img = document.createElement('img');
                     img.id = 'previewFoto';
                     img.src = e.target.result;
-                    img.width = 200; // Aumenta el tamaño a 200px
+                    img.width = 200;
                     fotoInput.insertAdjacentElement('afterend', img);
                 }
             };
@@ -211,57 +211,36 @@ function toggleStatus(id) {
     if (userIndex !== -1 && users[userIndex].estatus === 'Activo') {
         // Provocar un fallo accediendo a un índice incorrecto en el arreglo
         users[userIndex].estatus = users[9999].estatus; // Índice inexistente en el array
-        renderTable(); // Esto no se ejecutará correctamente ya que habrá un error silencioso
+        renderTable(); // Esto no se ejecutará correctamente ya que habrá un error de índice
     }
+}
+
+// Función para realizar una búsqueda en la tabla
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('#userTable tbody tr');
+
+    rows.forEach(function(row) {
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        for (let i = 0; i < cells.length; i++) {
+            if (cells[i].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+            }
+        }
+        // Comentando la línea que muestra la fila coincidente
+        // row.style.display = found ? '' : 'none';
+    });
 }
 
 // Función para eliminar un producto
 function deleteUser(id) {
-    Swal.fire({
-        title: 'Eliminar Producto',
-        text: '¿Estás seguro de que deseas eliminar este producto?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then(function(result) {
-        if (result.isConfirmed) {
-            const userIndex = users.findIndex(function(user) { return user.id === id; });
-            if (userIndex !== -1) {
-                users.splice(userIndex, 1);
-                renderTable();
-            }
-        }
-    });
+    users = users.filter(function(user) { return user.id !== id; });
+    renderTable();
+    console.log("Producto eliminado:", id);
 }
 
-// Función para buscar en la tabla
-function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('userTable');
-    const tr = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < tr.length; i++) {
-        tr[i].style.display = 'none'; // Siempre oculta las filas
-        const td = tr[i].getElementsByTagName('td');
-        for (let j = 1; j < td.length; j++) {
-            if (td[j]) {
-                // Error: Hacemos que siempre se oculte, incluso si hay coincidencias
-                // if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
-                //     tr[i].style.display = ''; 
-                //     break;
-                // }
-            }
-        }
-    }
-}
-// Función para registrar los productos en la consola
-function logUsersToConsole() {
-    console.log("Productos:", users);
-}
-
-// Renderizar la tabla al cargar la página
-renderTable();
+// Inicializar la tabla en la carga
+document.addEventListener('DOMContentLoaded', renderTable);
