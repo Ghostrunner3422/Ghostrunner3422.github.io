@@ -59,6 +59,7 @@ function renderTable() {
         tableBody.appendChild(row);
     });
 
+    // Llamar a la función para mostrar los objetos en la consola
     logUsersToConsole();
 }
 
@@ -105,13 +106,13 @@ function openUserForm(user = {}) {
                 const precioInput = document.getElementById('precio');
                 const categoriaInput = document.getElementById('categoria');
 
-                // Validación de campos obligatorios
-                if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value) {
-                    Swal.showValidationMessage('Todos los campos son obligatorios');
-                    return false;
-                }
+                // ERROR DE VALIDACIÓN: Se permite agregar sin nombre
+                // if (!nombreInput.value || !descripcionInput.value || !precioInput.value || !categoriaInput.value) {
+                //    Swal.showValidationMessage('Todos los campos son obligatorios');
+                //    return false;
+                // }
 
-                // Validación del precio
+                // Validación del precio (sin error)
                 if (isNaN(precioInput.value) || precioInput.value <= 0) {
                     Swal.showValidationMessage('El precio debe ser un número válido y mayor a 0');
                     return false;
@@ -147,57 +148,86 @@ function openUserForm(user = {}) {
         }
     }).then(function(result) {
         if (result.isConfirmed) {
-            const userData = result.value;
-            if (isEditMode) {
-                const index = users.findIndex(user => user.id === userData.id);
-                users[index] = userData;
+            const { id, foto, nombre, descripcion, precio, categoria, estatus } = result.value;
+            if (id) {
+                const userIndex = users.findIndex(function(user) { return user.id === id; });
+                users[userIndex] = { id, foto, nombre, descripcion, precio, categoria, estatus };
             } else {
-                userData.id = String(users.length + 1).padStart(4, '0');
-                users.push(userData);
+                const newId = String(users.length ? Math.max(...users.map(function(user) { return parseInt(user.id); })) + 1 : 1).padStart(4, '0');
+                users.push({ id: newId, foto, nombre, descripcion, precio, categoria, estatus });
+            }
+            renderTable();
+        }
+    });
+
+    const fotoInput = document.getElementById('foto');
+    fotoInput.addEventListener('change', function() {
+        const previewFoto = document.getElementById('previewFoto');
+        if (fotoInput.files && fotoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (previewFoto) {
+                    previewFoto.src = e.target.result;
+                } else {
+                    const img = document.createElement('img');
+                    img.id = 'previewFoto';
+                    img.src = e.target.result;
+                    img.width = 200; 
+                    fotoInput.insertAdjacentElement('afterend', img);
+                }
+            };
+            reader.readAsDataURL(fotoInput.files[0]);
+        }
+    });
+}
+
+// Función para editar un producto
+function editUser(id) {
+    const user = users.find(function(user) { return user.id === id; });
+    openUserForm(user);
+}
+
+// Función para confirmar el cambio de estatus al eliminar
+function confirmToggleStatus(id) {
+    const user = users.find(function(user) { return user.id === id; });
+
+    Swal.fire({
+        title: user.estatus === 'Activo' ? '¿Estás seguro de inactivar esta bebida?' : '¿Estás seguro de eliminar esta bebida?',
+        text: user.estatus === 'Activo' ? 'Esta acción cambiará el estatus del producto a inactivo.' : 'Esta acción eliminará el producto.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: user.estatus === 'Activo' ? 'Sí, inactivar' : 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            if (user.estatus === 'Activo') {
+                toggleStatus(id);
+            } else {
+                deleteUser(id);
             }
             renderTable();
         }
     });
 }
 
-// Función para confirmar el cambio de estatus
-function confirmToggleStatus(userId) {
-    const userIndex = users.findIndex(user => user.id === userId);
-    if (userIndex !== -1) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "No podrás revertir esto!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar!',
-            cancelButtonText: 'No, cancelar!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                users.splice(userIndex, 1);
-                renderTable();
-                Swal.fire('Eliminado!', 'Tu archivo ha sido eliminado.', 'success');
-            }
-        });
-    } else {
-        Swal.fire('Error!', 'El producto ya ha sido eliminado.', 'error');
-    }
+// Función para eliminar un usuario
+function deleteUser(id) {
+    // ERROR LÓGICO: No se muestra error si se intenta eliminar un producto ya eliminado.
+    users = users.filter(function(user) { return user.id !== id; });
 }
 
-// Función de búsqueda
-function searchTable() {
-    const searchValue = document.getElementById('searchInput').value.toLowerCase();
-    const filteredUsers = users.filter(user => {
-        return user.nombre.toLowerCase().includes(searchValue) ||
-               user.descripcion.toLowerCase().includes(searchValue) ||
-               user.categoria.toLowerCase().includes(searchValue);
+// Función para buscar un producto
+function searchUser() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const filteredUsers = users.filter(function(user) {
+        return user.nombre.toLowerCase().includes(searchInput) || user.descripcion.toLowerCase().includes(searchInput);
     });
-    renderFilteredTable(filteredUsers);
-}
 
-// Función para renderizar la tabla filtrada
-function renderFilteredTable(filteredUsers) {
     const tableBody = document.querySelector('#userTable tbody');
     tableBody.innerHTML = '';
+
     filteredUsers.forEach(function(user) {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -215,7 +245,22 @@ function renderFilteredTable(filteredUsers) {
         `;
         tableBody.appendChild(row);
     });
+
+    // ERROR DE INTERFAZ: No se muestra mensaje si no se encuentran resultados.
+    if (filteredUsers.length === 0) {
+        console.log("No se encontraron resultados."); // Esta línea es solo un log, no hay feedback visual.
+    }
+
+    logUsersToConsole();
 }
 
-// Inicialización
+// Función para mostrar usuarios en la consola
+function logUsersToConsole() {
+    console.log(users);
+}
+
+// Evento para buscar cuando se escribe en el campo de búsqueda
+document.getElementById('searchInput').addEventListener('input', searchUser);
+
+// Renderizar la tabla al cargar
 renderTable();
