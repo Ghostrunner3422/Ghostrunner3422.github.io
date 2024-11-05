@@ -13,8 +13,18 @@
     <title>Gestión de Bebidas</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
-        <link rel="stylesheet" href="css/bootstrap.min.css"/>
-        <link rel="stylesheet" href="css/usuarios.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/usuarios.css">
+    <style>
+        /* Error de responsividad introducido */
+        .table-responsive-sm {
+            overflow-x: hidden; /* Debería ser auto o visible para permitir el desplazamiento horizontal */
+        }
+        .icon-button {
+            width: 100%; /* Esto causa que los botones ocupen todo el ancho, dificultando el diseño */
+            text-align: center; /* Alineación central que puede causar problemas de diseño en pantallas pequeñas */
+        }
+    </style>
 </head>
 <body>
 
@@ -23,18 +33,19 @@
     /* Aquí se encuentran los elementos de la cabecera,        */
     /* como el botón de inicio, título y barra de búsqueda.    */
     /**********************************************************/-->
-           <div class="pt-3 container-fluid row">
-            <div class="col-xl-3 col-lg-2 col-md-2 col-sm-1">
-                <button onclick="location.href = 'principal.html'" class="icon-button pt-2 mt-1 px-4">
-                    <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
-                </button>
+    <div class="pt-3 container-fluid row">
+        <div class="col-xl-3 col-lg-2 col-md-2 col-sm-1">
+            <button onclick="location.href = 'principal.html'" class="icon-button pt-2 mt-1 px-4">
+                <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
+            </button>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-md-5 col-sm-5">
+            <h1>Gestión de Bebidas</h1> 
+            <div class="separador2"></div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar en la tabla" onkeyup="searchTable()">
+                <img src="https://img.icons8.com/ios-filled/50/000000/search.png" alt="Buscar">
             </div>
-            <div class="col-xl-6 col-lg-6 col-md-5 col-sm-5">
-        <h1>Gestión de Bebidas</h1> 
-        <div class="separador2"></div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Buscar en la tabla" onkeyup="searchTable()">
-            <img src="https://img.icons8.com/ios-filled/50/000000/search.png" alt="Buscar">
         </div>
     </div>
 
@@ -43,8 +54,7 @@
     /* En esta sección se define la tabla de gestión de        */
     /* bebidas, que se llenará dinámicamente con datos.        */
     /**********************************************************/-->
-     <div class="table-responsive-sm">
-         <table id="comboTable">
+    <div class="table-responsive-sm">
         <table id="userTable">
             <thead>
                 <tr>
@@ -57,7 +67,7 @@
                     <th>Estatus</th>
                     <th>
                         <button onclick="openUserForm()" class="icon-button2">
-                                    <img src="https://img.icons8.com/?size=100&id=BqsXFUlIH58v&format=png&color=ffffff" alt="Añadir">
+                            <img src="https://img.icons8.com/?size=100&id=BqsXFUlIH58v&format=png&color=ffffff" alt="Añadir">
                         </button>
                     </th>
                 </tr>
@@ -68,7 +78,7 @@
         </table>
     </div>
 
-   <!-- /**********************************************************/
+    <!-- /**********************************************************/
     /* Inclusión de Scripts                                    */
     /* Aquí se incluyen los archivos JavaScript necesarios     */
     /* para el funcionamiento de la aplicación, incluyendo     */
